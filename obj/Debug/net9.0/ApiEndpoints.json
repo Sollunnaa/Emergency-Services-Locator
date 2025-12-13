@@ -1,0 +1,66 @@
+[
+  {
+    "ContainingType": "Emergency_Services_Locator.Backend.Routes.MapRoute\u002B\u003C\u003Ec",
+    "Method": "\u003CMapMapEndpoints\u003Eb__0_2",
+    "RelativePath": "add",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ma",
+        "Type": "Emergency_Services_Locator.Backend.Access.MapAccess",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Emergency_Services_Locator.Backend.Routes.MapRoute\u002B\u003C\u003Ec",
+    "Method": "\u003CMapMapEndpoints\u003Eb__0_0",
+    "RelativePath": "maps",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "Emergency_Services_Locator.Backend.Tools.MapViewModel",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Emergency_Services_Locator.Backend.Routes.MapRoute\u002B\u003C\u003Ec",
+    "Method": "\u003CMapMapEndpoints\u003Eb__0_1",
+    "RelativePath": "maps/{id}",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Emergency_Services_Locator.Backend.Tools.MapViewModel",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  }
+]
