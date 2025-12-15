@@ -24,8 +24,29 @@ namespace Emergency_Services_Locator.Backend.Routes
                 return Results.Ok(id);
             });
 
+            builder.MapPut("/edit/{id}", async (int id, [FromBody] MapAccess ma, map_function mf) =>
+            {
+                int mapId = await mf.editMap(ma, id);
+                return Results.Ok(mapId);
+            });
 
+            builder.MapPut("/softdelete/{id}", async (int id, map_function mf) =>
+            {
+                int mapId = await mf.softDeleteMap(id);
+                return Results.Ok(mapId);
+            });
 
+            builder.MapPut("/restore/{id}", async (int id, map_function mf) =>
+            {
+                int mapId = await mf.restoreDelete(id);
+                return Results.Ok(mapId);
+            });
+
+            builder.MapDelete("/delete/{id}", async (int id, map_function mf) =>
+            {
+                int mapId = await mf.hardDeleteMap(id);
+                return Results.Ok(mapId);
+            });
             return builder;
         }
 

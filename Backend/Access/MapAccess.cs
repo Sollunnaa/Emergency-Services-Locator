@@ -27,6 +27,6 @@ namespace Emergency_Services_Locator.Backend.Access
                 location_name = locationName
             };
         }  
-
     }
+
 }
