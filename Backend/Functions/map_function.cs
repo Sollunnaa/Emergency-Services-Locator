@@ -15,12 +15,12 @@ namespace Emergency_Services_Locator.Backend.Functions
             _context = context;
         }
 
-        public async Task<MapViewModel> getMaps()
+        public async Task<List<MapViewModel>> getMaps()
         {
             var maps = await _context.Maps
                 .Where(c => !c.is_deleted)
                 .Select(c => new MapViewModel(c))
-                .SingleOrDefaultAsync();
+                .ToListAsync();
             return maps;
                 
         }

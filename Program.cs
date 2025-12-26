@@ -14,6 +14,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 builder.Services.AddScoped<map_function>();
+builder.Services.AddScoped<facility_function>();
+builder.Services.AddScoped<FacilityAccess>();
 builder.Services.AddScoped<MapAccess>();
 
 var app = builder.Build();
@@ -39,6 +41,7 @@ app.MapRazorPages()
 
 
 app.MapMapEndpoints();
+app.FacilityEndpoints();
 
 
 app.Run();
