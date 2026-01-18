@@ -27,6 +27,7 @@ namespace Emergency_Services_Locator.Backend.Functions
                      facility_name = c.facilities.facility_name,
                      address = c.facilities.address,
                      contact = c.facilities.contact,
+                     facility_type = c.facilities.facility_type,
                      map_name = c.map.location_name
                  })
                  .ToListAsync();
@@ -47,6 +48,7 @@ namespace Emergency_Services_Locator.Backend.Functions
                     facility_name = c.facility.facility_name,
                     address = c.facility.address,
                     contact = c.facility.contact,
+                    facility_type = c.facility.facility_type,
                     map_name = c.map.location_name
                 })
                 .SingleOrDefaultAsync();
@@ -69,6 +71,7 @@ namespace Emergency_Services_Locator.Backend.Functions
                 data.facility_name = fa.name;
                 data.address = fa.address;
                 data.contact = fa.contact;
+                data.facility_type = fa.type;
                 data.map_id = fa.map_id;
             }
             await _context.SaveChangesAsync();

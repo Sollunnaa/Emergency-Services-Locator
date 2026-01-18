@@ -15,6 +15,9 @@ namespace Emergency_Services_Locator.Backend.Access
         public string contact { get; set; }
 
         [Required]
+        public string type { get; set; }
+
+        [Required]
         public int map_id { get; set; }
 
         public Facility ToFacility()
@@ -24,6 +27,7 @@ namespace Emergency_Services_Locator.Backend.Access
                 facility_name = name,
                 address = address,
                 contact = contact,
+                facility_type = type,
                 map_id = map_id
             };
 

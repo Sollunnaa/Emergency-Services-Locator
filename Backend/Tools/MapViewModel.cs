@@ -9,6 +9,10 @@ namespace Emergency_Services_Locator.Backend.Tools
         public string latitude { get; set; }
         public string location_name { get; set; }
 
+        public MapViewModel()
+        {
+        }
+
         public MapViewModel(Map map)
         {
             id = map.id;
@@ -16,7 +20,5 @@ namespace Emergency_Services_Locator.Backend.Tools
             latitude = map.latitude;
             location_name = map.location_name;
         }
-        
-
     }
 }

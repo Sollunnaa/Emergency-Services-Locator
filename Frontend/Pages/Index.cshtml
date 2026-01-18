@@ -1,0 +1,236 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Emergency Services Locator";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="row">
+
+    @* Contains the functionality, buttons, and items*? *@
+    <div class="left">
+        <div class="facilities-panel">
+            <h2>Emergency Services</h2>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search facilities..." />
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-type="all">All</button>
+                <button class="filter-btn" data-type="Hospital">Hospitals</button>
+                <button class="filter-btn" data-type="Police">Police</button>
+                <button class="filter-btn" data-type="Fire">Fire Stations</button>
+            </div>
+
+            <button class="locate-me-btn" id="locateMeBtn">
+                <span class="locate-icon">📍</span>
+                Locate Me
+            </button>
+
+            <button class="add-facility-btn" id="addFacilityBtn">
+                <span class="add-icon">➕</span>
+                Add Facility
+            </button>
+
+            <div class="facilities-list" id="facilitiesList">
+                @if (Model.Facilities.Any())
+                {
+                    @foreach (var facility in Model.Facilities)
+                    {
+                        <div class="facility-card" 
+                             data-type="@facility.facility_type"
+                             data-map-id="@facility.id"
+                             data-name="@facility.facility_name">
+                            <div class="facility-icon">
+                                @switch (facility.facility_type)
+                                {
+                                    case "Hospital":
+                                        <span>🏥</span>
+                                        break;
+                                    case "Police":
+                                        <span>👮</span>
+                                        break;
+                                    case "Fire":
+                                        <span>🚒</span>
+                                        break;
+                                    default:
+                                        <span>📍</span>
+                                        break;
+                                }
+                            </div>
+                            <div class="facility-info">
+                                <h3>@facility.facility_name</h3>
+                                <p class="facility-type">@facility.facility_type</p>
+                                <p class="facility-address">@facility.address</p>
+                                <p class="facility-contact">📞 @facility.contact</p>
+                                <p class="facility-location">📍 @facility.map_name</p>
+                            </div>
+                            <button class="locate-btn" onclick="locateOnMap(@facility.id)">
+                                Locate
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-facilities">
+                        <p>No emergency services found.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Contains the OpenStreetMap *@
+    <div class="right">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="~/js/location.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/addFacility.js?v=@DateTime.Now.Ticks"></script>
+@* <script src="~/js/diagnostic.js?v=@DateTime.Now.Ticks"></script> *@
+<script>
+    // Map and facilities data
+    const facilitiesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Facilities));
+    const mapsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Maps));
+
+    // Initialize map
+    let map;
+    let markers = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+        setupFilters();
+        setupSearch();
+        setupLocateMe();
+        setupAddFacilityMode();
+    });
+
+    function initializeMap() {
+        // Default center (Philippines)
+        map = L.map('map').setView([12.8797, 121.7740], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Add markers for all facilities
+        facilitiesData.forEach(facility => {
+            const mapLocation = mapsData.find(m => m.location_name === facility.map_name);
+            if (mapLocation) {
+                addMarker(facility, mapLocation);
+            }
+        });
+
+        // Fit bounds to show all markers
+        if (Object.keys(markers).length > 0) {
+            const bounds = L.featureGroup(Object.values(markers)).getBounds();
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+
+    function addMarker(facility, mapLocation) {
+        const lat = parseFloat(mapLocation.latitude);
+        const lng = parseFloat(mapLocation.longitude);
+
+        const icon = getMarkerIcon(facility.facility_type);
+        
+        const marker = L.marker([lat, lng], { icon: icon })
+            .addTo(map)
+            .bindPopup(`
+                <div class="popup-content">
+                    <h3>${facility.facility_name}</h3>
+                    <p><strong>Type:</strong> ${facility.facility_type}</p>
+                    <p><strong>Address:</strong> ${facility.address}</p>
+                    <p><strong>Contact:</strong> ${facility.contact}</p>
+                </div>
+            `);
+
+        markers[facility.id] = marker;
+    }
+
+    function getMarkerIcon(type) {
+        let color;
+        switch(type) {
+            case 'Hospital':
+                color = '#dc3545';
+                break;
+            case 'Police':
+                color = '#0d6efd';
+                break;
+            case 'Fire':
+                color = '#fd7e14';
+                break;
+            default:
+                color = '#6c757d';
+        }
+
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
+        });
+    }
+
+    function locateOnMap(facilityId) {
+        const marker = markers[facilityId];
+        if (marker) {
+            map.setView(marker.getLatLng(), 15);
+            marker.openPopup();
+        }
+    }
+
+    function setupFilters() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const facilityCards = document.querySelectorAll('.facility-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterType = this.dataset.type;
+
+                facilityCards.forEach(card => {
+                    if (filterType === 'all' || card.dataset.type === filterType) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const facilityCards = document.querySelectorAll('.facility-card');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            facilityCards.forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                const type = card.dataset.type.toLowerCase();
+                
+                if (name.includes(searchTerm) || type.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+</script>
+
+@await Html.PartialAsync("_AddFacilityModal")
+

@@ -10,6 +10,7 @@ namespace Emergency_Services_Locator.Backend.Models
         public string facility_name { get; set; }
         public string address { get; set; }
         public string contact { get; set; }
+        public string facility_type { get; set; }
         public int map_id { get; set; }
         public bool is_deleted { get; set; }
 
