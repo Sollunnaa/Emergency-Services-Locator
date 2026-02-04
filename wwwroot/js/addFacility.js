@@ -2,42 +2,26 @@
 let tempMarker = null;
 let selectedLatLng = null;
 let mapClickEnabled = false;
+let bootstrapModal = null; // Store Bootstrap modal instance
 
 function setupAddFacilityMode() {
     const addFacilityBtn = document.getElementById('addFacilityBtn');
-    const modal = document.getElementById('addFacilityModal');
+    const modalElement = document.getElementById('addFacilityModal');
     
-    if (!addFacilityBtn || !modal) {
+    if (!addFacilityBtn || !modalElement) {
         console.error('Add Facility button or modal not found');
         return;
     }
 
     console.log('Setup Add Facility Mode - initialized');
 
+    // Initialize Bootstrap modal instance
+    bootstrapModal = new bootstrap.Modal(modalElement);
+
     addFacilityBtn.addEventListener('click', function(e) {
         e.preventDefault();
         console.log('Add Facility button clicked');
         enableMapClickMode();
-    });
-
-    // Handle cancel button clicks
-    const cancelButtons = document.querySelectorAll('#cancelAddFacility, .close-modal');
-    cancelButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeModal();
-            clearTempMarker();
-            disableMapClickMode();
-        });
-    });
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal();
-            clearTempMarker();
-            disableMapClickMode();
-        }
     });
 
     // Handle form submission
@@ -47,7 +31,18 @@ function setupAddFacilityMode() {
             e.preventDefault();
             await saveFacility();
         });
-    }
+    }       
+
+    // Listen to modal hidden event to cleanup
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        console.log('Modal hidden event fired');
+        clearTempMarker();
+        disableMapClickMode();
+        const form = document.getElementById('addFacilityForm');
+        if (form) {
+            form.reset();
+        }
+    });
 }
 
 function enableMapClickMode() {
@@ -134,7 +129,6 @@ function handleMapClick(e) {
     disableMapClickMode();
     
     // Remove existing temp marker if any
-    // DON'T call clearTempMarker here as it will reset selectedLatLng!
     if (tempMarker && typeof map !== 'undefined' && map) {
         try {
             map.removeLayer(tempMarker);
@@ -174,38 +168,35 @@ function handleMapClick(e) {
         showNotification('Error adding marker', 'error');
     }
 
-    // FIRST: Open modal and wait for it to be in DOM
+    // FIRST: Open modal using Bootstrap API
     console.log('Opening modal...');
     openModal();
     
-    // THEN: Use requestAnimationFrame to ensure modal is rendered
-    // This waits for the next browser paint cycle
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            console.log('Modal should be rendered now, populating fields...');
-            console.log('selectedLatLng before populate:', selectedLatLng);
-            
-            // Double-check selectedLatLng is still set
-            if (!selectedLatLng) {
-                console.error('ERROR: selectedLatLng was cleared! Restoring from local variables...');
-                selectedLatLng = { lat: clickedLat, lng: clickedLng };
-            }
-            
-            // Check if modal is actually visible
-            const modal = document.getElementById('addFacilityModal');
-            console.log('Modal display style:', modal ? modal.style.display : 'modal not found');
-            
-            // Now populate the fields
-            console.log('Calling updateCoordinateInputs...');
-            updateCoordinateInputs();
-            
-            console.log('Calling updateLocationName...');
-            updateLocationName();
-            
-            console.log('Calling getAddressFromCoords with:', clickedLat, clickedLng);
-            getAddressFromCoords(clickedLat, clickedLng);
-        });
-    });
+    // THEN: Use Bootstrap's shown.bs.modal event to populate fields
+    const modalElement = document.getElementById('addFacilityModal');
+    modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+        console.log('Modal fully shown, populating fields...');
+        console.log('selectedLatLng before populate:', selectedLatLng);
+        
+        // Double-check selectedLatLng is still set
+        if (!selectedLatLng) {
+            console.error('ERROR: selectedLatLng was cleared! Restoring from local variables...');
+            selectedLatLng = { lat: clickedLat, lng: clickedLng };
+        }
+        
+        // Now populate the fields
+        console.log('Calling updateCoordinateInputs...');
+        updateCoordinateInputs();
+        
+        console.log('Calling updateLocationName...');
+        updateLocationName();
+        
+        console.log('Calling getAddressFromCoords with:', clickedLat, clickedLng);
+        getAddressFromCoords(clickedLat, clickedLng);
+        
+        // Remove this one-time event listener
+        modalElement.removeEventListener('shown.bs.modal', onModalShown);
+    }, { once: true });
 }
 
 function updateCoordinateInputs() {
@@ -313,26 +304,20 @@ async function getAddressFromCoords(lat, lng) {
 }
 
 function openModal() {
-    const modal = document.getElementById('addFacilityModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        console.log('Modal opened');
+    if (bootstrapModal) {
+        bootstrapModal.show();
+        console.log('Modal opened using Bootstrap API');
     } else {
-        console.error('Modal not found!');
+        console.error('Bootstrap modal instance not initialized!');
     }
 }
 
 function closeModal() {
-    const modal = document.getElementById('addFacilityModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        console.log('Modal closed');
-    }
-    const form = document.getElementById('addFacilityForm');
-    if (form) {
-        form.reset();
+    if (bootstrapModal) {
+        bootstrapModal.hide();
+        console.log('Modal closed using Bootstrap API');
+    } else {
+        console.error('Bootstrap modal instance not initialized!');
     }
 }
 
@@ -358,7 +343,7 @@ async function saveFacility() {
     const submitBtn = document.getElementById('submitFacility');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving...';
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
     }
 
     try {
@@ -432,7 +417,7 @@ async function saveFacility() {
         showNotification('Error: ' + error.message, 'error');
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Save Facility';
+            submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Save Facility';
         }
     }
 }

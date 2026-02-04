@@ -29,3 +29,18 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Modal debugging styles */
+.modal.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
+
+.modal-dialog {
+    z-index: 1056 !important;
+}
