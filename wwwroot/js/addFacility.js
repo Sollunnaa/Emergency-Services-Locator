@@ -31,7 +31,7 @@ function setupAddFacilityMode() {
             e.preventDefault();
             await saveFacility();
         });
-    }       
+    }      
 
     // Listen to modal hidden event to cleanup
     modalElement.addEventListener('hidden.bs.modal', function () {

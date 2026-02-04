@@ -5,7 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Emergency_Services_Locator</RootNamespace>
-	  <AssemblyName>Emergency</AssemblyName>
+    <AssemblyName>Emergency</AssemblyName>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
 
   <ItemGroup>
